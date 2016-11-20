@@ -27,6 +27,8 @@ import tornado.httpserver
 import tornado.websocket
 from tornado.ioloop import PeriodicCallback
 
+BRIGHTNESS_EPSILON = 5
+
 APP_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATIC_PATH = os.path.join(APP_ROOT, "static")
 
@@ -91,10 +93,6 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                     self.camera = picamera.PiCamera()
                 else:
                     self.camera = cv2.VideoCapture(0)
-                    w, h = RESOLUTIONS[self.resolution]
-                    camera.set(3, w)
-                    camera.set(4, h)
-
                 self._start_loop()
 
             except Exception:
@@ -118,11 +116,11 @@ class WebSocket(tornado.websocket.WebSocketHandler):
 
 
             elif message == "more_brightness":
-                self.brightness = min(100, self.brightness + 10)
+                self.brightness = min(100, self.brightness + BRIGHTNESS_EPSILON)
                 print "Brightness: {}".format(self.brightness)
 
             elif message == "less_brightness":
-                self.brightness = max(0, self.brightness - 10)
+                self.brightness = max(0, self.brightness - BRIGHTNESS_EPSILON)
                 print "Brightness: {}".format(self.brightness)
 
             # Extensibility for other methods
@@ -134,6 +132,9 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         sio = io.StringIO()
 
         if self.use_usb:
+            w, h = RESOLUTIONS[self.resolution]
+            camera.set(3, w)
+            camera.set(4, h)
             _, frame = self.camera.read()
             img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             img.save(sio, "JPEG")
