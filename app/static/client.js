@@ -31,4 +31,12 @@ var client = {
     readCamera: function () {
         this.socket.send("read_camera");
     }
+
+    moreResolution: function() {
+        this.socket.send("more_resolution");
+    }
+
+    lessResolution: function() {
+        this.socket.send("less_resolution");
+    }
 };
