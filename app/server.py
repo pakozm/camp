@@ -87,15 +87,8 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         # Start an infinite loop when this is called
         if message == "read_camera":
             try:
-                print "READ"
                 if not self.use_usb:
                     self.camera = picamera.PiCamera()
-                    self.camera.resolution = RESOLUTIONS[self.resolution]
-                    self.camera.brightness = self.brightness
-                    if self.vflip:
-                        self.camera.vflip = True
-                    if self.hflip:
-                        self.camera.hflip = True
                 else:
                     self.camera = cv2.VideoCapture(0)
                     w, h = RESOLUTIONS[self.resolution]
@@ -145,6 +138,12 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             img.save(sio, "JPEG")
         else:
+            self.camera.resolution = RESOLUTIONS[self.resolution]
+            self.camera.brightness = self.brightness
+            if self.vflip:
+                self.camera.vflip = True
+            if self.hflip:
+                self.camera.hflip = True
             self.camera.capture(sio, "jpeg", use_video_port=True)
 
         try:
