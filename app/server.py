@@ -9,7 +9,6 @@ import getpass
 import hashlib
 import os
 import time
-import webbrowser
 
 from subprocess import check_call
 
@@ -82,6 +81,8 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                 self.camera = picamera.PiCamera()
                 self.camera.start_preview()
                 self.camera.resolution = RESOLUTIONS[self.resolution]
+                if self.vflip:
+                    self.camera.vflip = True
             else:
                 self.camera = cv2.VideoCapture(0)
                 w, h = RESOLUTIONS[self.resolution]
@@ -114,7 +115,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             if self.use_usb:
                 self.camera.release()
             else:
-                self.camera.stop()
+                self.camera.stop_preview()
 
             self.camera = None
 
@@ -209,7 +210,6 @@ def serve(options):
                                           ssl_options=ssl_options)
     application.listen(options.port)
 
-    webbrowser.open("http://localhost:%d/" % options.port, new=2)
     tornado.ioloop.IOLoop.instance().start()
 
 def _main():
