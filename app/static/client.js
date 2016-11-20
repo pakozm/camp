@@ -10,7 +10,9 @@ var client = {
     connect: function (port) {
         var self = this, video = document.getElementById("video");
 
-        this.socket = new WebSocket("//" + window.location.hostname + ":" + port + "/websocket");
+        var protocol = "ws";
+        if (location.protocol === 'https:') protocol = "wss";
+        this.socket = new WebSocket(protocol + "//" + window.location.hostname + ":" + port + "/websocket");
 
         // Request the video stream once connected
         this.socket.onopen = function () {
