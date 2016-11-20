@@ -50,7 +50,7 @@ def main():
             print "Password missmatch. Try again."
             psk1, psk2 = ask_password()
 
-        with open(WPA_SUPPLICANT, "a") as wpa_supplicant:
+        with open(WPA_SUPPLICANT_CONF, "a") as wpa_supplicant:
             wpa_supplicant.write(WIFI_CONFIG.format(ssid, psk1))
     else:
         print "Skipping SSID, it is really configured in wpa_supplicant.conf"
