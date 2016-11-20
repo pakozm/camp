@@ -43,11 +43,12 @@ class IndexHandler(tornado.web.RequestHandler):
         if self.require_login and not self.get_secure_cookie(COOKIE_NAME):
             self.redirect("/login")
         else:
-            self.render("index.html", port=self.port)
+            self.render(os.path.join(STATIC_PATH, "index.html"),
+                        port=self.port)
 
 class LoginHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("login.html")
+        self.render(os.path.join(STATIC_PATH, "login.html"))
 
     def post(self):
         password = self.get_argument("password", "")
