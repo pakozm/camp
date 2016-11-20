@@ -118,7 +118,7 @@ def parse_cli_args():
     options_parser.add_argument("--use-usb", action="store_true", help="Use a USB "
                                     "webcam instead of the standard Pi camera [False]")
     options_parser.add_argument("--create_password", help="Creates a new password for "
-                                "login and exists", action="store_true [False]")
+                                "login and exists [False]", action="store_true")
     return options_parser.parse_args()
 
 def ask_password():
