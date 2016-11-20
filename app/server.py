@@ -85,7 +85,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             try:
                 if not self.use_usb:
                     self.camera = picamera.PiCamera()
-                    self.camera.start_preview()
+                    #self.camera.start_preview()
                     self.camera.resolution = RESOLUTIONS[self.resolution]
                     self.camera.brightness = self.brightness
                     if self.vflip:
@@ -157,7 +157,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             if self.use_usb:
                 self.camera.release()
             else:
-                self.camera.stop_preview()
+                #self.camera.stop_preview()
                 self.camera.close()
 
             self.camera = None
