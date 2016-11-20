@@ -110,15 +110,15 @@ def parse_cli_args():
     options_parser = argparse.ArgumentParser(description="Starts a webserver that "
                                                  "connects to a webcam.")
     options_parser.add_argument("--port", type=int, default=8000, help="The "
-                                    "port on which to serve the website.")
+                                    "port on which to serve the website [8000]")
     options_parser.add_argument("--resolution", type=str, default="low", help="The "
-                                    "video resolution. Can be high, medium, or low.")
+                                    "video resolution. Can be high, medium, or low [low]")
     options_parser.add_argument("--require-login", action="store_true", help="Require "
-                                    "a password to log in to webserver.")
+                                    "a password to log in to webserver [False]")
     options_parser.add_argument("--use-usb", action="store_true", help="Use a USB "
-                                    "webcam instead of the standard Pi camera.")
-    options_parser.add_argument("--create_password", help="Creates a new password for login",
-                                    action="store_true")
+                                    "webcam instead of the standard Pi camera [False]")
+    options_parser.add_argument("--create_password", help="Creates a new password for "
+                                "login and exists", action="store_true [False]")
     return options_parser.parse_args()
 
 def ask_password():
@@ -145,7 +145,7 @@ def create_password():
 
 def serve(options):
     """Starts web server"""
-    if options.resolution not in resolutions:
+    if options.resolution not in RESOLUTIONS:
         raise RuntimeError("%s not in resolution options." % options.resolution)
 
     handlers = [
