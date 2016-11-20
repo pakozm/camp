@@ -68,10 +68,12 @@ class LoginHandler(tornado.web.RequestHandler):
             self.redirect(u"/login?error")
 
 class WebSocket(tornado.websocket.WebSocketHandler):
-    def initialize(self, use_usb=None, resolution=None, vflip=None):
+    def initialize(self, use_usb=None, resolution=None, vflip=None,
+                   hflip=None):
         self.use_usb = use_usb
         self.resolution = resolution
         self.vflip = vflip
+        self.hflip = hflip
 
     def on_message(self, message):
         """Evaluates the function pointed to by json-rpc."""
@@ -83,6 +85,8 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                 self.camera.resolution = RESOLUTIONS[self.resolution]
                 if self.vflip:
                     self.camera.vflip = True
+                if self.hflip
+                    self.camera.hflip = True
             else:
                 self.camera = cv2.VideoCapture(0)
                 w, h = RESOLUTIONS[self.resolution]
@@ -135,6 +139,8 @@ def parse_cli_args():
     options_parser.add_argument("--create-ssl-certs", help="Creates SSL "
                                 "certificates [False]", action="store_true")
     options_parser.add_argument("--vflip", help="Vertical flip of camera capture "
+                                "only for picamera [False]", action="store_true")
+    options_parser.add_argument("--hflip", help="Horizontal flip of camera capture "
                                 "only for picamera [False]", action="store_true")
     options_parser.add_argument("--use-ssl", help="Opens SSL secured socket "
                                 "[False]", action="store_true")
@@ -194,7 +200,8 @@ def serve(options):
         (r"/login", LoginHandler),
         (r"/websocket", WebSocket, {"use_usb": options.use_usb,
                                     "resolution": options.resolution,
-                                    "vflip": options.vflip}),
+                                    "vflip": options.vflip,
+                                    "hflip": options.hflip}),
         (r'/static/(.*)', tornado.web.StaticFileHandler,
              {'path': STATIC_PATH})
     ]
