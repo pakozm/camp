@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Installation script"""
-from getpass import getpass
+import getpass
 from subprocess import check_call, Popen
 
 WPA_SUPPLICANT_CONF = "/etc/wpa_supplicant/wpa_supplicant.conf"
@@ -25,8 +25,8 @@ def read_output(*args):
 
 def ask_password():
     """Asks for password twice and returns both inputs"""
-    psk1 = getpass("Password: ")
-    psk2 = getpass("Retype password: ")
+    psk1 = getpass.getpass("Password: ")
+    psk2 = getpass.getpass("Retype password: ")
     return psk1, psk2
 
 def main():
