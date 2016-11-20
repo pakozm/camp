@@ -14,6 +14,7 @@ import webbrowser
 
 import cv2
 from PIL import Image
+import picamera
 
 try:
     import cStringIO as io
