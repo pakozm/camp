@@ -142,6 +142,11 @@ def ask_password():
     pwd2 = getpass.getpass("Retype password: ")
     return pwd1, pwd2
 
+def configure_permissions():
+    """Changes permissions and owner of files in CAMP_CONF_FOLDER"""
+    check_call("chown -R pi:pi {}".format(CAMP_CONF_FOLDER).split(" "))
+    check_call("chmod -R 600 {}".format(CAMP_CONF_FOLDER).split(" "))
+
 def create_ssl_certificates():
     """Creates SSL certificates into /etc"""
     if not os.path.exists(CAMP_CONF_FOLDER):
@@ -152,6 +157,8 @@ def create_ssl_certificates():
                    .format(KEY_FILE_PATH, CSR_FILE_PATH).split(" "))
     check_call("openssl x509 -req -days 3650 -in {} -signkey {} -out {}"\
                .format(CSR_FILE_PATH, KEY_FILE_PATH, CERT_FILE_PATH).split(" "))
+
+    configure_permissions()
 
 def create_password():
     """Creates a new password hash into /etc"""
@@ -168,8 +175,7 @@ def create_password():
         fh.write(password_hash.hexdigest())
         fh.write("\n")
 
-    check_call("chown pi:pi {}".format(PASSWORD_PATH).split(" "))
-    check_call("chmod 600 {}".format(PASSWORD_PATH).split(" "))
+    configure_permissions()
 
 def serve(options):
     """Starts web server"""
