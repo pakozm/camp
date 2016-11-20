@@ -47,7 +47,7 @@ class IndexHandler(tornado.web.RequestHandler):
     def initialize(self, require_login=None, port=None):
         self.require_login = require_login
         self.port = port
-    
+
     def get(self):
         if self.require_login and not self.get_secure_cookie(COOKIE_NAME):
             self.redirect("/login")
@@ -221,9 +221,12 @@ def serve(options):
         # }
         print "SSL configuration: {}".format(ssl_options)
 
-    application = tornado.web.Application(handlers, cookie_secret=PASSWORD,
-                                          ssl_options=ssl_options)
-    application.listen(options.port)
+    server = tornado.httpserver.HTTPServer(
+        tornado.web.Application(handlers,
+                                cookie_secret=PASSWORD),
+        ssl_options=ssl_options,
+    )
+    server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
 
 def _main():
