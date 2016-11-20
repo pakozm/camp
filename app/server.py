@@ -215,7 +215,7 @@ def serve(options):
             "cert_reqs": ssl.CERT_REQUIRED,
             "ca_certs": CERT_FILE_PATH,
         }
-        print "SSL configuration: {}" + ssl_options
+        print "SSL configuration: {}".format(ssl_options)
 
     application = tornado.web.Application(handlers, cookie_secret=PASSWORD,
                                           ssl_options=ssl_options)
