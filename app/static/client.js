@@ -39,4 +39,12 @@ var client = {
     lessResolution: function() {
         this.socket.send("less_resolution");
     }
+
+    moreResolution: function() {
+        this.socket.send("more_resolution");
+    }
+
+    lessResolution: function() {
+        this.socket.send("less_resolution");
+    }
 };
