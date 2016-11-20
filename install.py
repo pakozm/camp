@@ -39,7 +39,7 @@ def main():
     check_call("apt-get install -qq rpi-update python-picamera python-tornado "
                "python-opencv python-pil".split(" "))
 
-    ssid = input("What's your WIFI SSID: ")
+    ssid = raw_input("What's your WIFI SSID: ")
 
     with open(WPA_SUPPLICANT_CONF) as wpa_supplicant:
         content = wpa_supplicant.read()
