@@ -3,7 +3,14 @@ camp
 
 Another Raspberry Pi camera webserver.
 
-![](img/example.png)
+![](example.png)
+
+This project is a fork of `https://github.com/patrickfuller/camp`
+developed by Patrick Fuller. The purpose of this fork is to refactor
+the code and to standardize installation and password creation into
+the web server. Another aim is to improve visualization of camera
+video in a mobile phone. Finally, this project introduces SSL
+transport for secure connections.
 
 What it does
 ============
@@ -24,8 +31,8 @@ I wanted:
  * Easily customizable webpage
  * Extensible server
 
-camp does just this. Nothing else. This (hopefully) makes it the simplest
-and fastest option out there.
+**camp** does just this. Nothing else. This (hopefully) makes it the
+simplest and fastest option out there.
 
 Installation
 ============
@@ -35,19 +42,20 @@ web server. It can interact with the [Pi camera](http://www.adafruit.com/product
 with the aptly named [picamera](http://picamera.readthedocs.org/en/release-1.7/)
 module, or it can use USB webcams with [opencv](http://opencv.org/)
 and [Pillow](http://pillow.readthedocs.org/en/latest/installation.html). The
-command below installs both sets of dependencies.
+command below installs all the dependencies and helps you to configure
+your WiFi connection. So, start cloning the server (probably through ethernet
+connection), and continue executing dependencies installation:
 
 ```
-sudo apt-get install python-dev python-pip python-opencv libjpeg-dev
-sudo pip install tornado Pillow picamera
+$ git clone https://github.com/patrickfuller/camp.git
+$ cd camp
+$ sudo python install.py
 ```
 
-Once the dependencies are installed on your pi, you can clone this repository and
-run the server.
+Now you can run the server:
 
 ```
-git clone https://github.com/patrickfuller/camp.git
-python camp/server.py
+$ python camp/server.py
 ```
 
 Navigate to http://your.r.pi.ip:8000 and check out your webcam.
@@ -58,20 +66,22 @@ Use with `python server.py --use-usb`.
 
 ####Password
 
-![](img/login.png)
+![](login.png)
 
-With the `--require-login` flag, camp will open a login page before allowing
-webcam access.
-
-The default password is "raspberry". In order to change it, run this in your
-camp directory:
+With the `--require-login` flag, camp will open a login page before
+allowing webcam access. So, firstly you need to configure a password
+to be used during your login:
 
 ```
-python -c "import hashlib; import getpass; print(hashlib.sha512(getpass.getpass())).hexdigest()" > password.txt
+$ python app/server.py --create-password
+[sudo] password for pi:
+Password: 
+Retype password: 
 ```
 
 This will prompt you for a password, encrypt it, and save the result in
-`password.txt`.
+`/etc/camp_password.txt`. This is the reason for executing this command
+with sudo.
 
 Note that this level of password protection is basic - it's fine for keeping the
 occasional stranger out, but won't stand up to targeted hacking.

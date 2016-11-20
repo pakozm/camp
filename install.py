@@ -34,12 +34,10 @@ def main():
     if getpass.getuser() != "root":
         raise RuntimeError("This script should be executed as root")
 
-    check_call("apt-get install rpi-update python-picamera python-tornado "
-               "python-opencv python-pil".split(" "))
-    check_call("rpi-update".split(" "))
     check_call("apt-get update".split(" "))
     check_call("apt-get upgrade".split(" "))
-    check_call("apt-get upgrade".split(" "))
+    check_call("apt-get install -qq rpi-update python-picamera python-tornado "
+               "python-opencv python-pil".split(" "))
 
     ssid = input("What's your WIFI SSID: ")
 
@@ -56,5 +54,3 @@ def main():
             wpa_supplicant.write(WIFI_CONFIG.format(ssid, psk1))
     else:
         print "Skipping SSID, it is really configured in wpa_supplicant.conf"
-
-    

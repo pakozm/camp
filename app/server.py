@@ -9,8 +9,9 @@ import getpass
 import hashlib
 import os
 import time
-import threading
 import webbrowser
+
+from subprocess import check_call
 
 import cv2
 from PIL import Image
@@ -27,7 +28,11 @@ from tornado.ioloop import PeriodicCallback
 
 APP_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATIC_PATH = os.path.join(APP_ROOT, "static")
-PASSWORD_PATH = "/etc/camp_password.txt"
+CAMP_CONF_FOLDER = "/etc/camp/"
+CSR_FILE_PATH = os.path.join(CAMP_CONF_FOLDER, "cert.csr")
+CERT_FILE_PATH = os.path.join(CAMP_CONF_FOLDER, "cert.crt")
+KEY_FILE_PATH = os.path.join(CAMP_CONF_FOLDER, "cert.key")
+PASSWORD_PATH = os.path.join(CAMP_CONF_FOLDER, "camp_password.txt")
 if os.path.isfile(PASSWORD_PATH):
     with open(PASSWORD_PATH) as in_file:
         # Hashed password for comparison and a cookie for login cache
@@ -61,9 +66,10 @@ class LoginHandler(tornado.web.RequestHandler):
             self.redirect(u"/login?error")
 
 class WebSocket(tornado.websocket.WebSocketHandler):
-    def initialize(self, use_usb=None, resolution=None):
+    def initialize(self, use_usb=None, resolution=None, vflip=None):
         self.use_usb = use_usb
         self.resolution = resolution
+        self.vflip = vflip
 
     def on_message(self, message):
         """Evaluates the function pointed to by json-rpc."""
@@ -84,7 +90,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
 
         # Extensibility for other methods
         else:
-            print("Unsupported function: " + message)
+            print "Unsupported function: {}".format(message)
 
     def loop(self):
         """Sends camera images in an infinite loop."""
@@ -113,15 +119,21 @@ def parse_cli_args():
     options_parser = argparse.ArgumentParser(description="Starts a webserver that "
                                                  "connects to a webcam.")
     options_parser.add_argument("--port", type=int, default=8000, help="The "
-                                    "port on which to serve the website [8000]")
+                                "port on which to serve the website [8000]")
     options_parser.add_argument("--resolution", type=str, default="low", help="The "
-                                    "video resolution. Can be high, medium, or low [low]")
+                                "video resolution. Can be high, medium, or low [low]")
     options_parser.add_argument("--require-login", action="store_true", help="Require "
-                                    "a password to log in to webserver [False]")
+                                "a password to log in to webserver [False]")
     options_parser.add_argument("--use-usb", action="store_true", help="Use a USB "
-                                    "webcam instead of the standard Pi camera [False]")
+                                "webcam instead of the standard Pi camera [False]")
     options_parser.add_argument("--create-password", help="Creates a new password for "
                                 "login and exists [False]", action="store_true")
+    options_parser.add_argument("--create-ssl-certs", help="Creates SSL "
+                                "certificates [False]", action="store_true")
+    options_parser.add_argument("--vflip", help="Vertical flip of camera capture "
+                                "only for picamera [False]", action="store_true")
+    options_parser.add_argument("--use-ssl", help="Opens SSL secured socket "
+                                "[False]", action="store_true")
     return options_parser.parse_args()
 
 def ask_password():
@@ -130,8 +142,21 @@ def ask_password():
     pwd2 = getpass.getpass("Retype password: ")
     return pwd1, pwd2
 
+def create_ssl_certificates():
+    """Creates SSL certificates into /etc"""
+    if not os.path.exists(CAMP_CONF_FOLDER):
+        os.mkdir(CAMP_CONF_FOLDER)
+
+    check_call("openssl genrsa -out {} 1024".format(KEY_FILE_PATH).split(" "))
+    check_call("openssl req -new -key {} -out {}"\
+                   .format(KEY_FILE_PATH, CSR_FILE_PATH).split(" "))
+    check_call("openssl x509 -req -days 3650 -in {} -signkey {} -out {}"\
+               .format(CSR_FILE_PATH, KEY_FILE_PATH, CERT_FILE_PATH).split(" "))
+
 def create_password():
     """Creates a new password hash into /etc"""
+    if not os.path.exists(CAMP_CONF_FOLDER):
+        os.mkdir(CAMP_CONF_FOLDER)
 
     pwd1, pwd2 = ask_password()
     while pwd1 != pwd2:
@@ -143,26 +168,36 @@ def create_password():
         fh.write(password_hash.hexdigest())
         fh.write("\n")
 
-    os.system("chown pi:pi {}".format(PASSWORD_PATH))
-    os.system("chmod 600 {}".format(PASSWORD_PATH))
+    check_call("chown pi:pi {}".format(PASSWORD_PATH).split(" "))
+    check_call("chmod 600 {}".format(PASSWORD_PATH).split(" "))
 
 def serve(options):
     """Starts web server"""
-    print("APP_ROOT: {}".format(APP_ROOT))
-    print("STATIC_PATH: {}".format(STATIC_PATH))
+    print "APP_ROOT: {}".format(APP_ROOT)
+    print "STATIC_PATH: {}".format(STATIC_PATH)
     if options.resolution not in RESOLUTIONS:
         raise RuntimeError("%s not in resolution options." % options.resolution)
-    
+
     handlers = [
         (r"/", IndexHandler, {"require_login": options.require_login,
                               "port": options.port}),
         (r"/login", LoginHandler),
         (r"/websocket", WebSocket, {"use_usb": options.use_usb,
-                                    "resolution": options.resolution}),
+                                    "resolution": options.resolution,
+                                    "vflip": options.vflip}),
         (r'/static/(.*)', tornado.web.StaticFileHandler,
              {'path': STATIC_PATH})
     ]
-    application = tornado.web.Application(handlers, cookie_secret=PASSWORD)
+
+    ssl_options = None
+    if options.use_ssl:
+        ssl_options = {
+            "certfile": CERT_FILE_PATH,
+            "keyfile": KEY_FILE_PATH,
+        }
+
+    application = tornado.web.Application(handlers, cookie_secret=PASSWORD,
+                                          ssl_options=ssl_options)
     application.listen(options.port)
 
     webbrowser.open("http://localhost:%d/" % options.port, new=2)
@@ -170,11 +205,13 @@ def serve(options):
 
 def _main():
     options = parse_cli_args()
-    print("Called with {}".format(str(options)))
 
     if options.create_password:
         create_password()
+    elif options.create_ssl_certs:
+        create_ssl_certificates()
     else:
+        print "Called with {}".format(str(options))
         serve(options)
 
 if __name__ == "__main__":
