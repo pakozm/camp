@@ -118,12 +118,20 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         except tornado.websocket.WebSocketClosedError:
             self.camera_loop.stop()
 
+            self._close_cameras()
+
+    def _close_cameras(self):
+        if self.camera is not None:
             if self.use_usb:
                 self.camera.release()
             else:
                 self.camera.stop_preview()
+                self.camera.close()
 
             self.camera = None
+
+    def on_close(self):
+        self._close_cameras()
 
 def parse_cli_args():
     options_parser = argparse.ArgumentParser(description="Starts a webserver that "
