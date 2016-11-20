@@ -38,6 +38,14 @@ var client = {
 
     lessResolution: function() {
         this.socket.send("less_resolution");
+    },
+
+    moreBrightness: function() {
+        this.socket.send("more_brightness");
+    },
+
+    lessBrightness: function() {
+        this.socket.send("less_brightness");
     }
 
 };

@@ -71,11 +71,12 @@ class LoginHandler(tornado.web.RequestHandler):
 
 class WebSocket(tornado.websocket.WebSocketHandler):
     def initialize(self, use_usb=None, resolution=None, vflip=None,
-                   hflip=None):
+                   hflip=None, brightness=None):
         self.use_usb = use_usb
         self.resolution = resolution
         self.vflip = vflip
         self.hflip = hflip
+        self.brightness = brightness
 
     def on_message(self, message):
         """Evaluates the function pointed to by json-rpc."""
@@ -86,6 +87,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                     self.camera = picamera.PiCamera()
                     self.camera.start_preview()
                     self.camera.resolution = RESOLUTIONS[self.resolution]
+                    self.camera.brightness = self.brightness
                     if self.vflip:
                         self.camera.vflip = True
                     if self.hflip:
@@ -115,6 +117,15 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             else:
                 self.resolution = "low"
             print "Resolution: {}".format(self.resolution)
+
+            
+        elif message == "more_brightness":
+            self.brightness = min(100, self.brightness + 10)
+            print "Brightness: {}".format(self.brightness)
+
+        elif message == "less_brightness":
+            self.brightness = max(0, self.brightness - 10)
+            print "Brightness: {}".format(self.brightness)
 
         # Extensibility for other methods
         else:
@@ -170,6 +181,8 @@ def parse_cli_args():
                                 "only for picamera [False]", action="store_true")
     options_parser.add_argument("--hflip", help="Horizontal flip of camera capture "
                                 "only for picamera [False]", action="store_true")
+    options_parser.add_argument("--brightness", help="Brightness of the image, "
+                                "only for picamera [50]", type=int, default=50)
     options_parser.add_argument("--use-ssl", help="Opens SSL secured socket "
                                 "[False]", action="store_true")
     return options_parser.parse_args()
@@ -229,7 +242,8 @@ def serve(options):
         (r"/websocket", WebSocket, {"use_usb": options.use_usb,
                                     "resolution": options.resolution,
                                     "vflip": options.vflip,
-                                    "hflip": options.hflip}),
+                                    "hflip": options.hflip,
+                                    "brightness": options.brightness}),
         (r'/static/(.*)', tornado.web.StaticFileHandler,
              {'path': STATIC_PATH})
     ]
