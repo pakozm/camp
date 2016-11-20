@@ -73,7 +73,6 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                 self.camera = picamera.PiCamera()
                 self.camera.start_preview()
                 self.camera.resolution = RESOLUTIONS[self.resolution]
-                self.camera.capture(sio, format="jpeg", use_video_port=True)
             else:
                 self.camera = cv2.VideoCapture(0)
                 w, h = RESOLUTIONS[self.resolution]
