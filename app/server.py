@@ -85,7 +85,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                 self.camera.resolution = RESOLUTIONS[self.resolution]
                 if self.vflip:
                     self.camera.vflip = True
-                if self.hflip
+                if self.hflip:
                     self.camera.hflip = True
             else:
                 self.camera = cv2.VideoCapture(0)
