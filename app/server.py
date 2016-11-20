@@ -102,7 +102,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                     camera.set(3, w)
                     camera.set(4, h)
 
-                _start_loop()
+                self._start_loop()
 
             except Exception:
                 raise
