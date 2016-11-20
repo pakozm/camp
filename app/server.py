@@ -130,9 +130,9 @@ def create_password():
     """Creates a new password hash into /etc"""
 
     pwd1, pwd2 = ask_password()
-        while pwd1 != pwd2:
-            print "Password missmatch. Try again."
-            pwd1, pwd2 = ask_password()
+    while pwd1 != pwd2:
+        print "Password missmatch. Try again."
+        pwd1, pwd2 = ask_password()
 
     password_hash = hashlib.sha512(pwd1)
     with open(PASSWORD_PATH, "w") as fh:
