@@ -209,12 +209,16 @@ def serve(options):
 
     ssl_options = None
     if options.use_ssl:
-        ssl_options = {
-            "certfile": CSR_FILE_PATH,
-            "keyfile": KEY_FILE_PATH,
-            "cert_reqs": ssl.CERT_REQUIRED,
-            "ca_certs": CERT_FILE_PATH,
-        }
+        ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        ssl_ctx.load_cert_chain(CERT_FILE_PATH, KEY_FILE_PATH)
+        ssl_options = ssl_ctx
+        # {
+        #     "certfile": CSR_FILE_PATH,
+        #     "keyfile": KEY_FILE_PATH,
+        #     "cert_reqs": ssl.CERT_REQUIRED,
+        #     "ca_certs": CERT_FILE_PATH,
+        #     "ssl_version": ssl.PROTOCOL_TLSv1
+        # }
         print "SSL configuration: {}".format(ssl_options)
 
     application = tornado.web.Application(handlers, cookie_secret=PASSWORD,
