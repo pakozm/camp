@@ -24,7 +24,7 @@ import tornado.web
 import tornado.websocket
 from tornado.ioloop import PeriodicCallback
 
-APP_ROOT = os.path.normpath(os.path.dirname(__file__))
+APP_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATIC_PATH = os.path.join(APP_ROOT, "static")
 PASSWORD_PATH = "/etc/camp_password.txt"
 if os.path.isfile(PASSWORD_PATH):
