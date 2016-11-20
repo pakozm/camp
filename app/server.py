@@ -28,15 +28,18 @@ from tornado.ioloop import PeriodicCallback
 
 APP_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATIC_PATH = os.path.join(APP_ROOT, "static")
+
 CAMP_CONF_FOLDER = "/etc/camp/"
 CSR_FILE_PATH = os.path.join(CAMP_CONF_FOLDER, "cert.csr")
 CERT_FILE_PATH = os.path.join(CAMP_CONF_FOLDER, "cert.crt")
 KEY_FILE_PATH = os.path.join(CAMP_CONF_FOLDER, "cert.key")
 PASSWORD_PATH = os.path.join(CAMP_CONF_FOLDER, "camp_password.txt")
+
 if os.path.isfile(PASSWORD_PATH):
     with open(PASSWORD_PATH) as in_file:
         # Hashed password for comparison and a cookie for login cache
         PASSWORD = in_file.read().strip()
+
 COOKIE_NAME = "camp"
 RESOLUTIONS = {"high": (1280, 720), "medium": (640, 480), "low": (320, 240)}
 
