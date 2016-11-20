@@ -81,34 +81,40 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         """Evaluates the function pointed to by json-rpc."""
         # Start an infinite loop when this is called
         if message == "read_camera":
-            if not self.use_usb:
-                self.camera = picamera.PiCamera()
-                self.camera.start_preview()
-                self.camera.resolution = RESOLUTIONS[self.resolution]
-                if self.vflip:
-                    self.camera.vflip = True
-                if self.hflip:
-                    self.camera.hflip = True
-            else:
-                self.camera = cv2.VideoCapture(0)
-                w, h = RESOLUTIONS[self.resolution]
-                camera.set(3, w)
-                camera.set(4, h)
+            try:
+                if not self.use_usb:
+                    self.camera = picamera.PiCamera()
+                    self.camera.start_preview()
+                    self.camera.resolution = RESOLUTIONS[self.resolution]
+                    if self.vflip:
+                        self.camera.vflip = True
+                    if self.hflip:
+                        self.camera.hflip = True
+                else:
+                    self.camera = cv2.VideoCapture(0)
+                    w, h = RESOLUTIONS[self.resolution]
+                    camera.set(3, w)
+                    camera.set(4, h)
 
-            self.camera_loop = PeriodicCallback(self.loop, 10)
-            self.camera_loop.start()
+                self.camera_loop = PeriodicCallback(self.loop, 10)
+                self.camera_loop.start()
+
+            except Exception:
+                raise
 
         elif message == "more_resolution":
             if self.resolution == "low":
                 self.resolution = "medium"
             else:
                 self.resolution = "high"
+            print "Resolution: {}".format(self.resolution)
 
         elif message == "less_resolution":
             if self.resolution == "high":
                 self.resolution = "medium"
             else:
                 self.resolution = "low"
+            print "Resolution: {}".format(self.resolution)
 
         # Extensibility for other methods
         else:
