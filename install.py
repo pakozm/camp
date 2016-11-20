@@ -54,3 +54,6 @@ def main():
             wpa_supplicant.write(WIFI_CONFIG.format(ssid, psk1))
     else:
         print "Skipping SSID, it is really configured in wpa_supplicant.conf"
+
+if __name__ == "__main__":
+    main()
