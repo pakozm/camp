@@ -209,14 +209,16 @@ def serve(options):
     ssl_options = None
     if options.use_ssl:
         ssl_options = {
-            "certfile": CERT_FILE_PATH,
+            "certfile": CSR_FILE_PATH,
             "keyfile": KEY_FILE_PATH,
+            "cert_reqs": ssl.CERT_REQUIRED,
+            "ca_certs": CERT_FILE_PATH,
         }
+        print "SSL configuration: {}" + ssl_options
 
     application = tornado.web.Application(handlers, cookie_secret=PASSWORD,
                                           ssl_options=ssl_options)
     application.listen(options.port)
-
     tornado.ioloop.IOLoop.instance().start()
 
 def _main():
