@@ -27,9 +27,10 @@ from tornado.ioloop import PeriodicCallback
 APP_ROOT = os.path.normpath(os.path.dirname(__file__))
 STATIC_PATH = os.path.join(APP_ROOT, "static")
 PASSWORD_PATH = "/etc/camp_password.txt"
-with open(PASSWORD_PATH) as in_file:
-    # Hashed password for comparison and a cookie for login cache
-    PASSWORD = in_file.read().strip()
+if os.path.isfile(PASSWORD_PATH):
+    with open(PASSWORD_PATH) as in_file:
+        # Hashed password for comparison and a cookie for login cache
+        PASSWORD = in_file.read().strip()
 COOKIE_NAME = "camp"
 RESOLUTIONS = {"high": (1280, 720), "medium": (640, 480), "low": (320, 240)}
 
