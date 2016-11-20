@@ -147,8 +147,8 @@ def ask_password():
 
 def configure_permissions():
     """Changes permissions and owner of files in CAMP_CONF_FOLDER"""
-    check_call("chown -R pi:pi {}".format(CAMP_CONF_FOLDER).split(" "))
-    check_call("chmod -R 600 {}".format(CAMP_CONF_FOLDER).split(" "))
+    check_call("chown pi:pi {}/*".format(CAMP_CONF_FOLDER).split(" "))
+    check_call("chmod 600 {}/*".format(CAMP_CONF_FOLDER).split(" "))
 
 def create_ssl_certificates():
     """Creates SSL certificates into /etc"""
