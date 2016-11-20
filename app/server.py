@@ -35,20 +35,17 @@ COOKIE_NAME = "camp"
 RESOLUTIONS = {"high": (1280, 720), "medium": (640, 480), "low": (320, 240)}
 
 class IndexHandler(tornado.web.RequestHandler):
-    def initialize(self, options):
-        self.options = options
+    def initialize(self, require_login=None, port=None):
+        self.require_login = require_login
+        self.port = port
     
     def get(self):
-        options = self.options
-        if options.require_login and not self.get_secure_cookie(COOKIE_NAME):
+        if self.require_login and not self.get_secure_cookie(COOKIE_NAME):
             self.redirect("/login")
         else:
-            self.render("index.html", port=options.port)
+            self.render("index.html", port=self.port)
 
 class LoginHandler(tornado.web.RequestHandler):
-    def initialize(self, options):
-        self.options = options
-
     def get(self):
         self.render("login.html")
 
@@ -62,23 +59,22 @@ class LoginHandler(tornado.web.RequestHandler):
             self.redirect(u"/login?error")
 
 class WebSocket(tornado.websocket.WebSocketHandler):
-    def initialize(self, options):
-        self.options = options
+    def initialize(self, use_usb=None, resolution=None):
+        self.use_usb = use_usb
+        self.resolution = resolution
 
     def on_message(self, message):
         """Evaluates the function pointed to by json-rpc."""
-        options = self.options
-
         # Start an infinite loop when this is called
         if message == "read_camera":
-            if not options.use_usb:
+            if not self.use_usb:
                 self.camera = picamera.PiCamera()
                 self.camera.start_preview()
-                self.camera.resolution = RESOLUTIONS[options.resolution]
+                self.camera.resolution = RESOLUTIONS[self.resolution]
                 self.camera.capture(sio, format="jpeg", use_video_port=True)
             else:
                 self.camera = cv2.VideoCapture(0)
-                w, h = RESOLUTIONS[options.resolution]
+                w, h = RESOLUTIONS[self.resolution]
                 camera.set(3, w)
                 camera.set(4, h)
 
@@ -91,20 +87,26 @@ class WebSocket(tornado.websocket.WebSocketHandler):
 
     def loop(self):
         """Sends camera images in an infinite loop."""
-        options = self.options
         sio = io.StringIO()
 
-        if options.use_usb:
-            _, frame = camera.read()
+        if self.use_usb:
+            _, frame = self.camera.read()
             img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             img.save(sio, "JPEG")
         else:
-            camera.capture(sio, "jpeg", use_video_port=True)
+            self.camera.capture(sio, "jpeg", use_video_port=True)
 
         try:
             self.write_message(base64.b64encode(sio.getvalue()))
         except tornado.websocket.WebSocketClosedError:
             self.camera_loop.stop()
+
+            if self.use_usb:
+                self.camera.release()
+            else:
+                self.camera.stop()
+
+            self.camera = None
 
 def parse_cli_args():
     options_parser = argparse.ArgumentParser(description="Starts a webserver that "
@@ -117,7 +119,7 @@ def parse_cli_args():
                                     "a password to log in to webserver [False]")
     options_parser.add_argument("--use-usb", action="store_true", help="Use a USB "
                                     "webcam instead of the standard Pi camera [False]")
-    options_parser.add_argument("--create_password", help="Creates a new password for "
+    options_parser.add_argument("--create-password", help="Creates a new password for "
                                 "login and exists [False]", action="store_true")
     return options_parser.parse_args()
 
@@ -147,11 +149,13 @@ def serve(options):
     """Starts web server"""
     if options.resolution not in RESOLUTIONS:
         raise RuntimeError("%s not in resolution options." % options.resolution)
-
+    
     handlers = [
-        (r"/", IndexHandler, options),
-        (r"/login", LoginHandler, options),
-        (r"/websocket", WebSocket, options),
+        (r"/", IndexHandler, {"require_login": options.require_login,
+                              "port": options.port}),
+        (r"/login", LoginHandler),
+        (r"/websocket", WebSocket, {"use_usb": options.use_usb,
+                                    "resolution": options.resolution}),
         (r'/static/(.*)', tornado.web.StaticFileHandler,
              {'path': STATIC_PATH})
     ]
@@ -163,7 +167,7 @@ def serve(options):
 
 def _main():
     options = parse_cli_args()
-    print("Called with {}".format(options))
+    print("Called with {}".format(str(options)))
 
     if options.create_password:
         create_password()
