@@ -78,14 +78,18 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         self.hflip = hflip
         self.brightness = brightness
 
+    def _start_loop(self):
+        self.camera_loop = PeriodicCallback(self.loop, 10)
+        self.camera_loop.start()
+
     def on_message(self, message):
         """Evaluates the function pointed to by json-rpc."""
         # Start an infinite loop when this is called
         if message == "read_camera":
             try:
+                print "READ"
                 if not self.use_usb:
                     self.camera = picamera.PiCamera()
-                    #self.camera.start_preview()
                     self.camera.resolution = RESOLUTIONS[self.resolution]
                     self.camera.brightness = self.brightness
                     if self.vflip:
@@ -98,38 +102,39 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                     camera.set(3, w)
                     camera.set(4, h)
 
-                self.camera_loop = PeriodicCallback(self.loop, 10)
-                self.camera_loop.start()
+                _start_loop()
 
             except Exception:
                 raise
 
-        elif message == "more_resolution":
-            if self.resolution == "low":
-                self.resolution = "medium"
-            else:
-                self.resolution = "high"
-            print "Resolution: {}".format(self.resolution)
-
-        elif message == "less_resolution":
-            if self.resolution == "high":
-                self.resolution = "medium"
-            else:
-                self.resolution = "low"
-            print "Resolution: {}".format(self.resolution)
-
-            
-        elif message == "more_brightness":
-            self.brightness = min(100, self.brightness + 10)
-            print "Brightness: {}".format(self.brightness)
-
-        elif message == "less_brightness":
-            self.brightness = max(0, self.brightness - 10)
-            print "Brightness: {}".format(self.brightness)
-
-        # Extensibility for other methods
         else:
-            print "Unsupported function: {}".format(message)
+
+            if message == "more_resolution":
+                if self.resolution == "low":
+                    self.resolution = "medium"
+                else:
+                    self.resolution = "high"
+                print "Resolution: {}".format(self.resolution)
+
+            elif message == "less_resolution":
+                if self.resolution == "high":
+                    self.resolution = "medium"
+                else:
+                    self.resolution = "low"
+                print "Resolution: {}".format(self.resolution)
+
+
+            elif message == "more_brightness":
+                self.brightness = min(100, self.brightness + 10)
+                print "Brightness: {}".format(self.brightness)
+
+            elif message == "less_brightness":
+                self.brightness = max(0, self.brightness - 10)
+                print "Brightness: {}".format(self.brightness)
+
+            # Extensibility for other methods
+            else:
+                print "Unsupported function: {}".format(message)
 
     def loop(self):
         """Sends camera images in an infinite loop."""
@@ -157,7 +162,6 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             if self.use_usb:
                 self.camera.release()
             else:
-                #self.camera.stop_preview()
                 self.camera.close()
 
             self.camera = None
