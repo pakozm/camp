@@ -149,7 +149,7 @@ def create_password():
 def serve(options):
     """Starts web server"""
     print("APP_ROOT: {}".format(APP_ROOT))
-    print("STATIC_PATH: {}".format(STATIC_PATH)
+    print("STATIC_PATH: {}".format(STATIC_PATH))
     if options.resolution not in RESOLUTIONS:
         raise RuntimeError("%s not in resolution options." % options.resolution)
     
