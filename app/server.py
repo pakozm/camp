@@ -119,6 +119,9 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             self.camera_loop.stop()
 
             self._close_cameras()
+        except Exception:
+            self._close_cameras()
+            raise
 
     def _close_cameras(self):
         if self.camera is not None:
@@ -129,9 +132,6 @@ class WebSocket(tornado.websocket.WebSocketHandler):
                 self.camera.close()
 
             self.camera = None
-
-    def on_close(self):
-        self._close_cameras()
 
 def parse_cli_args():
     options_parser = argparse.ArgumentParser(description="Starts a webserver that "
