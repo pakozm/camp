@@ -23,6 +23,7 @@ except ImportError:
     import io
 
 import tornado.web
+import tornado.httpserver
 import tornado.websocket
 from tornado.ioloop import PeriodicCallback
 
