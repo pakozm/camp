@@ -34,7 +34,7 @@ def main():
     if getpass.getuser() != "root":
         raise RuntimeError("This script should be executed as root")
 
-    check_call("apt-get install rpi-update python-picamera python-tornado".split(" "))
+    check_call("apt-get install rpi-update python-picamera python-tornado python-opencv".split(" "))
     check_call("rpi-update".split(" "))
     check_call("apt-get update".split(" "))
     check_call("apt-get upgrade".split(" "))
