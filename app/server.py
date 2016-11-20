@@ -98,6 +98,18 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             self.camera_loop = PeriodicCallback(self.loop, 10)
             self.camera_loop.start()
 
+        elif message == "more_resolution":
+            if self.resolution == "low":
+                self.resolution = "medium"
+            else:
+                self.resolution = "high"
+
+        elif message == "less_resolution":
+            if self.resolution == "high":
+                self.resolution = "medium"
+            else:
+                self.resolution = "low"
+
         # Extensibility for other methods
         else:
             print "Unsupported function: {}".format(message)
